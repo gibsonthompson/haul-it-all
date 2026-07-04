@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   Haul It All — v3 "screenprint" direction
+   Pulled straight from the logo: that exact bright green, heavy
+   black, and off-white. Bold poster energy. Anton headlines,
+   thick black frames, the dancing bear out front.
+--------------------------------------------------------------- */
+@theme {
+  --color-green: #7fd957;        /* exact logo green — bear sits seamlessly on it */
+  --color-green-deep: #2c7a1a;   /* green that passes contrast on light */
+  --color-ink: #121110;          /* heavy near-black */
+  --color-ink-soft: #47443c;
+  --color-bone: #f5f1e6;         /* warm off-white content bg */
+  --color-line: #e6dfce;
+
+  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
+  --font-body: var(--font-hanken), "Segoe UI", system-ui, sans-serif;
+
+  --radius-card: 1.5rem;
+}
+
+:root { color-scheme: light; }
+
+* { border-color: var(--color-line); }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background-color: var(--color-green); color: var(--color-ink); }
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Anton display: tight, loud, poster-like */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 0.94;
+}
+
+/* Uppercase tracked eyebrow */
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Signature: heavy black screenprint frame */
+.frame {
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-card);
+}
+
+/* Area ticker */
+.marquee { overflow: hidden; white-space: nowrap; }
+.marquee__track {
+  display: inline-flex; align-items: center; will-change: transform;
+  animation: marquee 44s linear infinite;
+}
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.rise { animation: rise 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+  .rise { animation: none; }
+  html { scroll-behavior: auto; }
+}
