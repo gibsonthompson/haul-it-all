@@ -1,37 +1,28 @@
 'use client'
 
 // app/admin/layout.js
-// Haul It All admin shell. Auth context, permission-gated nav, login gate.
-//
-// BRAND TOKEN LAYER: every brand color lives in CSS variables defined once on
-// .haul-admin (see the styled-jsx block at the bottom). Pages reference
-// var(--admin-primary) etc, never a raw hex. A second tenant reskins the whole
-// admin by overriding these tokens in one place, no find-and-replace.
-// Pipeline stage colors (blue/indigo/purple per stage) are intentionally NOT
-// tokenized: those are semantic status colors and should read the same for
-// every tenant.
-//
-// Fonts come from the root layout (next/font sets --font-anton and
-// --font-hanken on <html>), so nothing is injected here. Anton is used only for
-// the wordmark and page titles, Hanken Grotesk is the UI body font.
+// Multi-tenant admin shell. Session comes from the httpOnly JWT cookie via
+// /api/auth/me (no localStorage). The signed-in org's brand is applied to the
+// --admin-* CSS variables at the root, so the entire admin reskins to that
+// tenant automatically, and the sidebar shows their logo and company name.
 
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { brandToCssVars } from '@/lib/brand'
 
-const AuthContext = createContext({ isAuthenticated: false, user: null, hasPermission: () => false })
+const AuthContext = createContext({ isAuthenticated: false, user: null, org: null, hasPermission: () => false, refresh: () => {} })
 export const useAdminAuth = () => useContext(AuthContext)
 
-// Small bear-in-a-green-tile logo. The bear PNG has a baked #7fd957 background,
-// so sitting it on a matching green tile hides the seam.
-function BearMark({ size = 32, rounded = 'rounded-xl' }) {
+// Brand mark: the tenant's logo if they have one, otherwise the Haul bear.
+function BrandMark({ size = 32, rounded = 'rounded-xl', logoUrl }) {
   return (
-    <span
-      className={`inline-flex items-center justify-center overflow-hidden ${rounded}`}
-      style={{ width: size, height: size, background: 'var(--admin-accent)' }}
-    >
-      <Image src="/bear.png" alt="Haul It All" width={size} height={size} className="h-full w-full object-cover" />
+    <span className={`inline-flex items-center justify-center overflow-hidden ${rounded}`}
+      style={{ width: size, height: size, background: logoUrl ? '#ffffff' : 'var(--admin-accent)', border: logoUrl ? '1px solid var(--admin-line)' : undefined }}>
+      {logoUrl
+        ? <img src={logoUrl} alt="" className="h-full w-full object-contain p-0.5" />
+        : <Image src="/bear.png" alt="Haul It All" width={size} height={size} className="h-full w-full object-cover" />}
     </span>
   )
 }
@@ -39,6 +30,7 @@ function BearMark({ size = 32, rounded = 'rounded-xl' }) {
 export default function AdminLayout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
+  const [org, setOrg] = useState(null)
   const [checking, setChecking] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
@@ -48,8 +40,7 @@ export default function AdminLayout({ children }) {
   const [loginError, setLoginError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
 
-  // Native PWA feel: kill overscroll bounce and block pinch / double-tap zoom,
-  // including in Safari browser mode where user-scalable=no is ignored.
+  // Native PWA feel: kill overscroll bounce and block pinch / double-tap zoom.
   useEffect(() => {
     const meta = document.querySelector('meta[name="viewport"]')
     const content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'
@@ -61,7 +52,6 @@ export default function AdminLayout({ children }) {
     document.body.style.overscrollBehavior = 'none'
     document.documentElement.style.overscrollBehavior = 'none'
 
-    // { passive: false } is REQUIRED for preventDefault to fire on these events.
     const preventGesture = (e) => e.preventDefault()
     const preventMultiTouch = (e) => { if (e.touches && e.touches.length > 1) e.preventDefault() }
     let lastTouchEnd = 0
@@ -87,39 +77,53 @@ export default function AdminLayout({ children }) {
     }
   }, [])
 
-  useEffect(() => {
+  // Session check via the cookie. Also used to re-theme after a logo change.
+  const refresh = useCallback(async () => {
     try {
-      const saved = localStorage.getItem('haul_admin_user')
-      if (saved) { const parsed = JSON.parse(saved); setUser(parsed); setIsAuthenticated(true) }
-    } catch (e) { localStorage.removeItem('haul_admin_user') }
-    setChecking(false)
+      const r = await fetch('/api/auth/me')
+      if (r.ok) {
+        const d = await r.json()
+        setUser(d.user); setOrg(d.org || null); setIsAuthenticated(true)
+      } else {
+        setUser(null); setOrg(null); setIsAuthenticated(false)
+      }
+    } catch (e) {
+      setUser(null); setOrg(null); setIsAuthenticated(false)
+    }
   }, [])
 
+  useEffect(() => { (async () => { await refresh(); setChecking(false) })() }, [refresh])
   useEffect(() => { setSidebarOpen(false) }, [pathname])
 
   const handleLogin = async (e) => {
     e.preventDefault(); setLoginError(''); setLoggingIn(true)
     try {
-      const r = await fetch('/api/admin/auth', {
+      const r = await fetch('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
       const data = await r.json()
       if (!r.ok) { setLoginError(data.error || 'Login failed'); return }
-      setUser(data.user); setIsAuthenticated(true); localStorage.setItem('haul_admin_user', JSON.stringify(data.user))
+      setUser(data.user); setOrg(data.org || null); setIsAuthenticated(true)
     } catch (err) { setLoginError('Connection error') }
     finally { setLoggingIn(false) }
   }
 
-  const handleLogout = () => { setIsAuthenticated(false); setUser(null); localStorage.removeItem('haul_admin_user') }
+  const handleLogout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }) } catch (e) { /* noop */ }
+    setIsAuthenticated(false); setUser(null); setOrg(null)
+  }
 
   const hasPermission = (key) => {
     if (!user) return false
-    if (user.role === 'admin') return true
+    if (user.role === 'admin' || user.role === 'super_admin') return true
     return user.permissions?.[key] === true
   }
 
-  // Grouped navigation. perm keys are the Haul permission set.
+  const brandVars = brandToCssVars(org?.brand)
+  const orgName = org?.name || 'Haul It All'
+  const logoUrl = org?.logo_url || null
+
   const icon = (d) => <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={d} /></svg>
   const navGroups = [
     { label: null, items: [
@@ -158,7 +162,7 @@ export default function AdminLayout({ children }) {
         <div className="w-full max-w-sm rounded-3xl border-[3px] border-[var(--admin-ink)] bg-white p-6 sm:p-8">
           <div className="text-center mb-8">
             <div className="mx-auto mb-4 flex flex-col items-center gap-3">
-              <BearMark size={64} rounded="rounded-2xl" />
+              <BrandMark size={64} rounded="rounded-2xl" />
               <span style={{ fontFamily: 'var(--font-anton)' }} className="text-3xl uppercase tracking-tight text-[var(--admin-ink)]">Haul It All</span>
             </div>
             <p className="text-sm text-[var(--admin-ink-faint)]">Sign in to continue</p>
@@ -183,7 +187,7 @@ export default function AdminLayout({ children }) {
               {loggingIn ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-          <p className="text-center text-xs mt-5 text-[var(--admin-ink-faint)]">Forgot your password? Ask your admin.</p>
+          <p className="text-center text-sm mt-5 text-[var(--admin-ink-faint)]">New here? <Link href="/signup" className="font-bold text-[var(--admin-primary)]">Create a workspace</Link></p>
           <Link href="/" className="block text-center mt-3 text-sm text-[var(--admin-ink-soft)] hover:text-[var(--admin-primary)] transition-colors">Back to website</Link>
         </div>
         <TokenStyles />
@@ -194,8 +198,8 @@ export default function AdminLayout({ children }) {
   const SidebarContent = ({ mobile = false }) => (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2.5 px-5 py-5 flex-shrink-0">
-        <BearMark size={30} />
-        <span style={{ fontFamily: 'var(--font-anton)' }} className="text-xl uppercase tracking-tight text-[var(--admin-ink)]">Haul It All</span>
+        <BrandMark size={30} logoUrl={logoUrl} />
+        <span style={{ fontFamily: 'var(--font-anton)' }} className="text-xl uppercase tracking-tight text-[var(--admin-ink)] truncate">{orgName}</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-1">
@@ -230,7 +234,7 @@ export default function AdminLayout({ children }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-bold text-[var(--admin-ink)] truncate">{user?.name}</p>
-            <p className="text-[10px] capitalize text-[var(--admin-ink-faint)]">{user?.role}</p>
+            <p className="text-[10px] capitalize text-[var(--admin-ink-faint)]">{user?.role === 'admin' ? 'Owner' : user?.role === 'super_admin' ? 'Platform' : 'Staff'}</p>
           </div>
         </div>
         <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] w-full transition-all text-[var(--admin-ink-faint)] hover:text-red-500 hover:bg-red-50/80">
@@ -242,8 +246,8 @@ export default function AdminLayout({ children }) {
   )
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, hasPermission }}>
-      <div className="haul-admin admin-root desktop-zoom min-h-screen flex" style={{ background: 'var(--admin-bg)', fontFamily: 'var(--font-hanken)' }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, org, hasPermission, refresh }}>
+      <div className="haul-admin admin-root desktop-zoom min-h-screen flex" style={{ background: 'var(--admin-bg)', fontFamily: 'var(--font-hanken)', ...brandVars }}>
         <aside className="admin-chrome hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 w-[220px] bg-white border-r border-[var(--admin-line)]">
           <SidebarContent />
         </aside>
@@ -254,8 +258,8 @@ export default function AdminLayout({ children }) {
               <button onClick={() => setSidebarOpen(true)} className="p-1 -ml-1 text-[var(--admin-ink-soft)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
-              <BearMark size={28} />
-              <span style={{ fontFamily: 'var(--font-anton)' }} className="text-lg uppercase tracking-tight text-[var(--admin-ink)]">Haul It All</span>
+              <BrandMark size={28} logoUrl={logoUrl} />
+              <span style={{ fontFamily: 'var(--font-anton)' }} className="text-lg uppercase tracking-tight text-[var(--admin-ink)] truncate max-w-[160px]">{orgName}</span>
             </div>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--admin-primary)' }}>
               <span className="text-white font-bold text-xs">{user?.name?.charAt(0)?.toUpperCase()}</span>
@@ -284,18 +288,18 @@ export default function AdminLayout({ children }) {
   )
 }
 
-// Brand token layer + shared admin chrome behavior. Defined once; every admin
-// page inherits these variables. Override --admin-* for a different tenant.
+// Default token layer (Haul green). A tenant's brand is applied as inline vars
+// on the root above, which override these defaults.
 function TokenStyles() {
   return (
     <style jsx global>{`
       .haul-admin {
-        --admin-primary: #2c7a1a;        /* green-deep, carries white text (WCAG AA) */
+        --admin-primary: #2c7a1a;
         --admin-primary-hover: #24631a;
         --admin-primary-soft: rgba(44, 122, 26, 0.08);
         --admin-primary-ring: rgba(44, 122, 26, 0.18);
-        --admin-accent: #7fd957;         /* bright logo green, accents and the bear tile */
-        --admin-bg: #f5f1e6;             /* bone, matches the marketing site */
+        --admin-accent: #7fd957;
+        --admin-bg: #f5f1e6;
         --admin-surface: #ffffff;
         --admin-line: #e6dfce;
         --admin-ink: #121110;
