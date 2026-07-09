@@ -1,14 +1,13 @@
 // app/api/admin/auth/route.js
-// Admin login. The admin layout POSTs { username, password } here.
-// Verifies bcrypt against haul_users, stamps last_login, and returns the
-// user (hash stripped). Admins get the full permission set built from the
-// Haul permission keys. org_id rides along for future multi-tenant scoping.
+// Admin login. POST { username, password } -> { user } on success.
+// Verifies bcrypt password against haul_users, blocks inactive accounts,
+// stamps last_login, and returns the user WITHOUT the password hash. Admins
+// carry the full permission set so the client gate resolves correctly.
 
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getAdmin } from '@/lib/supabase'
 
-// Full admin permission set, built from the Haul permission keys.
 const ADMIN_PERMISSIONS = {
   dashboard: true,
   leads: true,
@@ -22,36 +21,49 @@ const ADMIN_PERMISSIONS = {
 
 export async function POST(request) {
   try {
-    const { username, password } = await request.json()
+    const body = await request.json().catch(() => ({}))
+    const username = (body.username || '').toLowerCase().trim()
+    const password = body.password || ''
+
     if (!username || !password) {
-      return NextResponse.json({ error: 'Username and password required' }, { status: 400 })
+      return NextResponse.json({ error: 'Username and password are required' }, { status: 400 })
     }
 
     const supabase = getAdmin()
 
     const { data: user, error } = await supabase
       .from('haul_users')
-      .select('id, username, name, phone, email, password_hash, role, permissions, is_active, org_id')
-      .eq('username', username.toLowerCase().trim())
+      .select('*')
+      .eq('username', username)
       .single()
 
-    if (error || !user) {
+    if (error && error.code !== 'PGRST116') {
+      console.error('Auth lookup error:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+    if (!user) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
     }
-    if (!user.is_active) {
-      return NextResponse.json({ error: 'Account is disabled. Contact your admin.' }, { status: 401 })
+    if (user.is_active === false) {
+      return NextResponse.json({ error: 'This account has been deactivated' }, { status: 403 })
     }
 
-    const valid = await bcrypt.compare(password, user.password_hash)
-    if (!valid) {
+    const ok = await bcrypt.compare(password, user.password_hash || '')
+    if (!ok) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
     }
 
-    await supabase.from('haul_users').update({ last_login: new Date().toISOString() }).eq('id', user.id)
+    // Best-effort last_login stamp; never block login on it.
+    supabase.from('haul_users').update({ last_login: new Date().toISOString() }).eq('id', user.id).then(() => {}, () => {})
 
-    const { password_hash, ...safeUser } = user
-    if (safeUser.role === 'admin') {
-      safeUser.permissions = { ...ADMIN_PERMISSIONS }
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      permissions: user.role === 'admin' ? ADMIN_PERMISSIONS : (user.permissions || {}),
     }
 
     return NextResponse.json({ user: safeUser })
