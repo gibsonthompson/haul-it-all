@@ -10,6 +10,25 @@ import { setSession } from '@/lib/auth'
 
 const SAFE = 'id, username, name, phone, email, role, permissions, is_active, org_id'
 
+// GET /api/auth/signup  -> health check you can read in a browser.
+// Reports whether this deployment has the Supabase env vars and can reach the
+// haul_orgs table. Does not leak any secret values.
+export async function GET() {
+  const env = {
+    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  }
+  let haul_orgs = 'unknown'
+  try {
+    const supabase = getAdmin()
+    const { error } = await supabase.from('haul_orgs').select('*', { count: 'exact', head: true })
+    haul_orgs = error ? ('ERROR: ' + (error.message || error.code || 'query failed')) : 'ok'
+  } catch (e) {
+    haul_orgs = 'CLIENT ERROR: ' + String(e?.message || e)
+  }
+  return NextResponse.json({ ok: true, env, haul_orgs })
+}
+
 function slugify(s) {
   return (s || 'company').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'company'
 }
