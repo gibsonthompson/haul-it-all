@@ -79,7 +79,7 @@ export async function PATCH(request) {
   try {
     const supabase = getAdmin()
     const body = await request.json()
-    const { id, status, notes, next_follow_up, scheduled_date, scheduled_time, quoted_amount, address, city, close_reason, assigned_to } = body
+    const { id, status, notes, next_follow_up, scheduled_date, scheduled_time, quoted_amount, address, city, close_reason, assigned_to, payment_status, amount_collected, completed_at } = body
     if (!id) return NextResponse.json({ error: 'Missing lead ID' }, { status: 400 })
 
     const updateData = {}
@@ -93,6 +93,9 @@ export async function PATCH(request) {
     if (city !== undefined) updateData.city = city
     if (close_reason !== undefined) updateData.close_reason = close_reason
     if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null
+    if (payment_status !== undefined) updateData.payment_status = payment_status
+    if (amount_collected !== undefined) updateData.amount_collected = amount_collected
+    if (completed_at !== undefined) updateData.completed_at = completed_at
 
     let q = supabase.from('haul_leads').update(updateData).eq('id', id)
     if (auth.org) q = q.eq('org_id', auth.org)  // cannot touch another org's lead
