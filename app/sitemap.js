@@ -15,6 +15,7 @@ const STATIC_PAGES = [
   { path: "/", priority: 1.0, changeFrequency: "weekly" },
   { path: "/junk-removal", priority: 0.9, changeFrequency: "weekly" },
   { path: "/dumpster-rental", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/demolition", priority: 0.9, changeFrequency: "weekly" },
   { path: "/service-areas", priority: 0.8, changeFrequency: "monthly" },
   { path: "/junk-removal-cost", priority: 0.8, changeFrequency: "monthly" },
   { path: "/dumpster-rental-cost", priority: 0.8, changeFrequency: "monthly" },

@@ -9,7 +9,7 @@ import ImagePlaceholder from "@/components/ImagePlaceholder";
 import Icon from "@/components/Icon";
 import { Bear, Stars } from "@/components/Brand";
 import { JsonLd, faqSchema } from "@/lib/schema";
-import { site, areas, junkServices, dumpsterSizes, dumpsterUses, steps, trustPoints } from "@/lib/site";
+import { site, areas, junkServices, dumpsterUses, steps, trustPoints, demolitionServices } from "@/lib/site";
 
 export default function HomePage() {
   return (
@@ -22,6 +22,7 @@ export default function HomePage() {
         <QuoteBand />
         <TrustStrip />
         <Services />
+        <DemolitionSection />
         <WhatWeTake />
         <BeforeAfterSection />
         <HowItWorks />
@@ -126,7 +127,7 @@ function Services() {
         <ServiceCard tone="green" img={{ label: "Crew loading the truck", icon: "truck", src: "/images/junk-removal-loaded-truck.jpg" }} tag="We do the work" title="JUNK REMOVAL"
           desc="Point at it and consider it gone. Furniture, appliances, garage and estate cleanouts, hot tubs, the works." chips={junkServices.slice(0, 5).map((s) => s.name)} href="/junk-removal" cta="Explore junk removal" />
         <ServiceCard tone="ink" img={{ label: "Dumpster in the driveway", icon: "box", src: "/images/dumpster-rental-driveway.jpg" }} tag="You fill it, we haul it" title="DUMPSTER RENTAL"
-          desc="A driveway-friendly roll-off dropped when you need it, tonnage included, no surprise fees. Text alerts on the way and on pickup." chips={dumpsterSizes.map((d) => `${d.yards} yd`)} href="/dumpster-rental" cta="Explore dumpster rental" />
+          desc="A driveway-friendly roll-off dropped when you need it, tonnage included, no surprise fees. Text alerts on the way and on pickup." chips={["16 ft trailer", "Tonnage included", "Driveway-friendly", "Flat rate"]} href="/dumpster-rental" cta="Explore dumpster rental" />
       </div>
     </section>
   );
@@ -331,6 +332,36 @@ function FinalCta() {
         </div>
         <div className="flex justify-center md:justify-end">
           <Bear className="w-56 object-contain sm:w-64" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------ Demolition */
+function DemolitionSection() {
+  return (
+    <section id="demolition" className="scroll-mt-20 border-y-[3px] border-ink bg-ink text-bone">
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <p className="eyebrow text-green">Demolition</p>
+        <h2 className="mt-3 max-w-2xl font-display text-5xl sm:text-6xl">DON'T JUST CLEAR IT. TEAR IT DOWN.</h2>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-bone/75">
+          Interior gut-outs, sheds, decks, fences, concrete, and more. We handle
+          the teardown and haul every scrap away, leaving a clean, swept site behind.
+        </p>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {demolitionServices.map((d) => (
+            <div key={d.name} className="rounded-2xl border-2 border-bone/25 p-6">
+              <span className="grid h-11 w-11 place-items-center rounded-xl border-2 border-green bg-green text-ink"><Icon name={d.icon} className="h-5 w-5" /></span>
+              <h3 className="mt-4 font-display text-lg tracking-tight text-bone">{d.name}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-bone/70">{d.blurb}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <Link href="/demolition" className="inline-flex items-center gap-2 rounded-full border-2 border-green bg-green px-6 py-3 text-sm font-extrabold text-ink transition-colors hover:bg-bone hover:border-bone">
+            Explore demolition <Icon name="arrow" className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </section>
