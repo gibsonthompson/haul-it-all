@@ -44,7 +44,7 @@ function Hero() {
       <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 pb-10 pt-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pb-14 lg:pt-14">
         <div className="rise">
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-bone px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wide text-ink">
-            Gainesville & North Georgia
+            Metro Atlanta & North Georgia
           </span>
           <h1 className="mt-5 font-display text-[3.6rem] text-ink sm:text-7xl lg:text-8xl">
             JUNK GONE.<br />SPACE BACK.
@@ -123,9 +123,9 @@ function Services() {
     <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
       <SectionHead eyebrow="Two ways we help" title="HAUL IT AWAY, OR FILL IT YOURSELF." sub="Want a crew to make it vanish today, or a dumpster in the driveway to load on your own time? We do both, and we'll tell you which one saves you money." />
       <div className="mt-10 grid gap-6 md:grid-cols-2">
-        <ServiceCard tone="green" img={{ label: "Crew loading the truck", icon: "truck" }} tag="We do the work" title="JUNK REMOVAL"
+        <ServiceCard tone="green" img={{ label: "Crew loading the truck", icon: "truck", src: "/images/junk-removal-loaded-truck.jpg" }} tag="We do the work" title="JUNK REMOVAL"
           desc="Point at it and consider it gone. Furniture, appliances, garage and estate cleanouts, hot tubs, the works." chips={junkServices.slice(0, 5).map((s) => s.name)} href="/junk-removal" cta="Explore junk removal" />
-        <ServiceCard tone="ink" img={{ label: "Dumpster in the driveway", icon: "box" }} tag="You fill it, we haul it" title="DUMPSTER RENTAL"
+        <ServiceCard tone="ink" img={{ label: "Dumpster in the driveway", icon: "box", src: "/images/dumpster-rental-driveway.jpg" }} tag="You fill it, we haul it" title="DUMPSTER RENTAL"
           desc="A driveway-friendly roll-off dropped when you need it, tonnage included, no surprise fees. Text alerts on the way and on pickup." chips={dumpsterSizes.map((d) => `${d.yards} yd`)} href="/dumpster-rental" cta="Explore dumpster rental" />
       </div>
     </section>
@@ -136,7 +136,7 @@ function ServiceCard({ img, tag, title, desc, chips, href, cta, tone }) {
   const dark = tone === "ink";
   return (
     <div className={`flex flex-col overflow-hidden frame ${dark ? "bg-ink text-bone" : "bg-green text-ink"}`}>
-      <ImagePlaceholder label={img.label} icon={img.icon} tone={dark ? "ink" : "bone"} className="h-52 w-full rounded-none border-0 border-b-[3px]" />
+      <ImagePlaceholder label={img.label} icon={img.icon} src={img.src} tone={dark ? "ink" : "bone"} className="h-52 w-full rounded-none border-0 border-b-[3px]" />
       <div className="flex flex-1 flex-col p-7">
         <span className={`eyebrow ${dark ? "text-green" : "text-ink/70"}`}>{tag}</span>
         <h3 className="mt-2 font-display text-4xl tracking-tight">{title}</h3>
@@ -213,7 +213,7 @@ function EcoSection() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
       <div className="grid items-center gap-10 frame bg-white p-8 sm:p-12 md:grid-cols-[0.85fr_1.15fr]">
-        <ImagePlaceholder label="Sorting for donation & recycling" icon="recycle" tone="green" className="aspect-square w-full" />
+        <ImagePlaceholder label="Sorting for donation & recycling" icon="recycle" src="/images/dumpster-full-load.jpg" tone="green" className="aspect-square w-full" />
         <div>
           <p className="eyebrow text-green-deep">Donation-first disposal</p>
           <h2 className="mt-3 font-display text-4xl text-ink sm:text-5xl">WE KEEP WHAT WE CAN OUT OF THE LANDFILL.</h2>
@@ -263,9 +263,9 @@ function DumpsterPreview() {
 /* --------------------------------------------------------------- Reviews */
 function Reviews() {
   const reviews = [
-    { quote: "Texted them a photo of my garage on a Tuesday, it was empty by Thursday. Fair price, no surprises, and they were great with my dog.", name: "Megan R.", city: "Flowery Branch" },
-    { quote: "Needed a dumpster for a roof tear-off. Showed up on time, texted me a photo of where they set it, and pickup was painless.", name: "Dale T.", city: "Gainesville" },
-    { quote: "They donated a couch and two dressers I thought were trash and sent me the receipt. Beat watching it go to the dump.", name: "Priya K.", city: "Oakwood" },
+    { quote: "Texted them a photo of my garage on a Tuesday, it was empty by Thursday. Fair price, no surprises, and they were great with my dog.", name: "Megan R.", city: "Roswell" },
+    { quote: "Needed a dumpster for a roof tear-off. Showed up on time, texted me a photo of where they set it, and pickup was painless.", name: "Dale T.", city: "Marietta" },
+    { quote: "They donated a couch and two dressers I thought were trash and sent me the receipt. Beat watching it go to the dump.", name: "Priya K.", city: "Duluth" },
   ];
   return (
     <section id="reviews" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
@@ -290,8 +290,8 @@ function AreasSection() {
     <section id="areas" className="scroll-mt-20 border-y-[3px] border-ink bg-ink text-bone">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <p className="eyebrow text-green">Where we work</p>
-        <h2 className="mt-3 font-display text-5xl sm:text-6xl">PROUDLY SERVING NORTH GEORGIA.</h2>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-bone/75">Do not see your town? Call us. If you're near Lake Lanier or the north metro, we most likely cover you.</p>
+        <h2 className="mt-3 font-display text-5xl sm:text-6xl">PROUDLY SERVING METRO ATLANTA.</h2>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-bone/75">Do not see your town? Call us. If you're anywhere across metro Atlanta or up toward Lake Lanier and North Georgia, we most likely cover you.</p>
         <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {areas.map((a) => (
             <li key={a} className="flex items-center gap-2 rounded-xl border-2 border-bone/25 px-4 py-3 text-sm font-bold text-bone">
@@ -321,7 +321,7 @@ function FinalCta() {
       <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 py-14 sm:px-6 md:grid-cols-[1.1fr_0.9fr]">
         <div>
           <h2 className="font-display text-5xl text-ink sm:text-6xl">READY TO GET IT GONE?</h2>
-          <p className="mt-4 max-w-md text-base font-medium text-ink/80">Get a real price in minutes. Same-day and next-day service across Gainesville and North Georgia.</p>
+          <p className="mt-4 max-w-md text-base font-medium text-ink/80">Get a real price in minutes. Same-day and next-day service across metro Atlanta and North Georgia.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="#quote" className="rounded-full border-2 border-ink bg-ink px-7 py-3.5 text-base font-extrabold text-green transition-colors hover:bg-bone hover:text-ink">Get my free price</Link>
             <a href={site.phoneHref} className="flex items-center gap-2 rounded-full border-2 border-ink bg-bone px-7 py-3.5 text-base font-extrabold text-ink transition-colors hover:bg-ink hover:text-green">

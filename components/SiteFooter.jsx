@@ -23,9 +23,6 @@ export default function SiteFooter() {
               <a href={site.phoneHref} className="flex items-center gap-2 font-extrabold hover:text-green">
                 <Icon name="phone" className="h-4 w-4" /> {site.phone}
               </a>
-              <a href={`mailto:${site.email}`} className="flex items-center gap-2 text-bone/80 hover:text-green">
-                <Icon name="tag" className="h-4 w-4" /> {site.email}
-              </a>
             </div>
           </div>
           <div>
@@ -44,7 +41,7 @@ export default function SiteFooter() {
         </div>
         <div className="mt-12 flex flex-col gap-2 border-t border-bone/15 pt-6 text-xs text-bone/50 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} {site.name}. Licensed & insured.</p>
-          <p>Serving Gainesville, Hall County, and North Georgia.</p>
+          <p>Serving Metro Atlanta and North Georgia.</p>
         </div>
       </div>
     </footer>

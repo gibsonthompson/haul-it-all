@@ -1,11 +1,15 @@
 import Icon from "@/components/Icon";
 
 // On-brand stand-in for real photos. Bold black frame, screenprint feel.
+// Pass `src` to render a real photo (same frame); leave it off for the
+// screenprint placeholder.
 // tone: 'bone' | 'green' | 'ink'
 export default function ImagePlaceholder({
   label = "Photo",
   icon = "camera",
   tone = "bone",
+  src,
+  alt,
   className = "",
 }) {
   const tones = {
@@ -13,6 +17,17 @@ export default function ImagePlaceholder({
     green: "bg-green text-ink",
     ink: "bg-ink text-green",
   };
+
+  // Real photo: same heavy black frame, image fills the slot.
+  if (src) {
+    return (
+      <div className={`relative overflow-hidden frame ${className}`}>
+        { /* eslint-disable-next-line @next/next/no-img-element */ }
+        <img src={src} alt={alt || label || ""} className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+
   return (
     <div className={`relative flex items-center justify-center overflow-hidden frame ${tones[tone]} ${className}`}>
       <div
