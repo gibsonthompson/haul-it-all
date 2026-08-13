@@ -12,11 +12,12 @@ import { site, dumpsterSizes, dumpsterUses } from "@/lib/site";
 export const metadata = {
   title: "Dumpster Rental",
   description:
-    "Driveway-friendly roll-off dumpster rental in Gainesville and North Georgia. Flat-rate with tonnage included, no surprise fees, on-time delivery and pickup. Residential and contractor.",
+    "Driveway-friendly 16 ft roll-off dumpster rental in metro Atlanta and North Georgia. Flat-rate with tonnage included, no surprise fees, on-time delivery and pickup. Residential and contractor.",
   alternates: { canonical: "/dumpster-rental" },
 };
 
 export default function DumpsterRentalPage() {
+  const box = dumpsterSizes[0];
   return (
     <>
       <JsonLd data={serviceSchema({ name: "Dumpster Rental", description: metadata.description, path: "/dumpster-rental" })} />
@@ -43,7 +44,7 @@ export default function DumpsterRentalPage() {
                   <Icon name="phone" className="h-4 w-4" /> {site.phone}
                 </a>
               </div>
-              <div className="mt-7 flex items-center gap-2 text-sm font-bold text-ink"><Stars /> Contractors: ask about swap-out pricing</div>
+              <div className="mt-7 flex items-center gap-2 text-sm font-bold text-ink"><Stars /> Contractors: ask about job-site rentals</div>
             </div>
             <div className="flex justify-center lg:justify-end"><Bear className="w-full max-w-sm object-contain" /></div>
           </div>
@@ -55,27 +56,29 @@ export default function DumpsterRentalPage() {
             <div>
               <p className="eyebrow text-green-deep">Free, no obligation</p>
               <h2 className="mt-3 font-display text-5xl text-ink sm:text-6xl">CHECK YOUR PRICE IN MINUTES.</h2>
-              <p className="mt-4 max-w-md text-base leading-relaxed text-ink-soft">Tell us the project and we'll size it and price it. Flat rate, tonnage included, no surprises on pickup day.</p>
+              <p className="mt-4 max-w-md text-base leading-relaxed text-ink-soft">Tell us the project and we'll confirm it's a fit and price it. Flat rate, tonnage included, no surprises on pickup day.</p>
             </div>
             <QuoteForm />
           </div>
         </section>
 
-        {/* Sizes */}
+        {/* One size */}
         <section className="border-b-[3px] border-ink bg-green">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <p className="eyebrow text-ink/70">Sizes</p>
-            <h2 className="mt-3 max-w-2xl font-display text-5xl text-ink sm:text-6xl">FIND THE RIGHT SIZE, SKIP THE GUESSWORK.</h2>
-            <div className="mt-10 overflow-hidden frame bg-bone">
-              {dumpsterSizes.map((d, i) => (
-                <div key={d.yards} className={`grid grid-cols-1 gap-2 px-6 py-5 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-6 ${i > 0 ? "border-t-2 border-ink/15" : ""}`}>
-                  <span className="font-display text-4xl text-ink">{d.yards}<span className="ml-1 text-base font-bold text-ink-soft">YD</span></span>
-                  <p className="text-sm font-medium text-ink-soft"><span className="font-extrabold text-ink">Best for:</span> {d.best}</p>
-                  <span className="rounded-full border-2 border-ink bg-green px-3 py-1 text-xs font-bold text-ink sm:justify-self-end">{d.dims}</span>
+            <p className="eyebrow text-ink/70">One size, sized right</p>
+            <h2 className="mt-3 max-w-2xl font-display text-5xl text-ink sm:text-6xl">ONE TRAILER THAT FITS MOST JOBS.</h2>
+            <div className="mt-10 grid items-center gap-6 frame bg-bone p-8 sm:grid-cols-[auto_1fr] sm:gap-10 sm:p-10">
+              <span className="font-display text-7xl leading-none text-ink sm:text-8xl">16<span className="ml-2 align-top text-2xl font-bold text-ink-soft">FT</span></span>
+              <div>
+                <p className="text-base leading-relaxed text-ink-soft"><span className="font-extrabold text-ink">Best for:</span> {box.best}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {["Driveway-friendly", "Tonnage included", "Flat rate", "Load on your time"].map((c) => (
+                    <span key={c} className="rounded-full border-2 border-ink bg-green px-3 py-1 text-xs font-bold text-ink">{c}</span>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-            <p className="mt-4 text-xs font-medium text-ink/70">Overweight loads are billed per ton at a rate stated up front. No surprises on pickup day.</p>
+            <p className="mt-4 text-xs font-medium text-ink/70">One flat-rate box that covers the vast majority of home projects. Overweight loads are billed per ton at a rate stated up front. No surprises on pickup day.</p>
           </div>
         </section>
 
@@ -84,7 +87,7 @@ export default function DumpsterRentalPage() {
           <p className="eyebrow text-green-deep">Jobs we load out</p>
           <h2 className="mt-3 font-display text-5xl text-ink sm:text-6xl">RESIDENTIAL AND CONTRACTOR, BOTH HANDLED.</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <ImagePlaceholder label="Roll-off on a residential driveway" icon="house" tone="green" className="aspect-[4/3] w-full" />
+            <ImagePlaceholder label="Roll-off on a residential driveway" icon="house" tone="green" src="/images/dumpster-rental-driveway.jpg" className="aspect-[4/3] w-full" />
             <div className="grid gap-4 sm:grid-cols-2">
               {dumpsterUses.map((u) => (
                 <div key={u.name} className="rounded-2xl border-2 border-ink bg-white p-5">
